@@ -1,19 +1,27 @@
 import streamlit as st
-import joblib
-import re
+import pickle
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-import string
 
-# Load the saved model and vectorizer
-model = joblib.load('news_classifier_model.pkl')
-vectorizer = joblib.load('tfidf_vectorizer.pkl')
+# Ensure nltk resources are available
+try:
+    import nltk
+    nltk.download('stopwords', quiet=True)
+    nltk.download('punkt', quiet=True)
+except Exception as e:
+    st.error(f"Error downloading NLTK resources: {e}")
+
+# Load the saved model and vectorizer using pickle
+with open('news_classifier_model.pkl', 'rb') as model_file:
+    model = pickle.load(model_file)
+
+with open('tfidf_vectorizer.pkl', 'rb') as vectorizer_file:
+    vectorizer = pickle.load(vectorizer_file)
 
 # Text preprocessing function
 def preprocess_text(text):
     text = text.lower()
-    text = re.sub(r'http\\S+', '', text)
-    text = text.translate(str.maketrans('', '', string.punctuation))
+    text = ''.join(char for char in text if char.isalnum() or char.isspace())
     tokens = word_tokenize(text)
     stop_words = set(stopwords.words('english'))
     tokens = [word for word in tokens if word not in stop_words]
